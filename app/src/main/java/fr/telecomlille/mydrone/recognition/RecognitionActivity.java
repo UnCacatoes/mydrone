@@ -4,12 +4,20 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -26,6 +34,8 @@ import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfRect;
 import org.opencv.core.Rect;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 
 import java.io.File;
@@ -62,6 +72,8 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
         }
     };
     private boolean mIsEnabled = false;
+    private SurfaceView canvasView;
+    private MatOfRect faces;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,6 +99,20 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
         if (!OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback)) {
             Log.e(TAG, "onCreate: failed to initialize OpenCV");
         }
+
+        //Run thread
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, "Starting face detection thread");
+                while (true) {
+                    if(mVideoView!=null) {
+                        onBitmapReceived(mVideoView.getBitmap());
+                    }
+                }
+            }
+        });
+        thread.start();
     }
 
     /**
@@ -109,6 +135,7 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
             os.close();
 
             mClassifier = new CascadeClassifier(mCascadeFile.getAbsolutePath());
+            mClassifier.load(mCascadeFile.getAbsolutePath());
             if (mClassifier.empty()) {
                 Log.e(TAG, "Error while loading classifier file.");
             } else {
@@ -120,15 +147,8 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
     }
 
     private void initIHM() {
-        mVideoView = (BebopVideoView) findViewById(R.id.videoView);
-        ((ToggleButton) findViewById(R.id.btn_followme))
-                .setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                        enableFollowing(isChecked);
-                    }
-                });
 
+        mVideoView = (BebopVideoView) findViewById(R.id.videoView);
         mTakeoffLandButton = (ImageButton) findViewById(R.id.btn_takeoff_land);
         mTakeoffLandButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,6 +170,163 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
             @Override
             public void onClick(View view) {
                 mDrone.emergency();
+            }
+        });
+
+        // Monter en altitude
+        findViewById(R.id.btn_gaz_up).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        view.setPressed(true);
+                        mDrone.setGaz(50);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        view.setPressed(false);
+                        mDrone.setGaz(0);
+                        break;
+                }
+                return true;
+            }
+        });
+        // Descendre en altitude
+        findViewById(R.id.btn_gaz_down).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        view.setPressed(true);
+                        mDrone.setGaz(-50);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        view.setPressed(false);
+                        mDrone.setGaz(0);
+                        break;
+                }
+                return true;
+            }
+        });
+        // Pivoter sur la droite
+        findViewById(R.id.btn_yaw_right).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        view.setPressed(true);
+                        mDrone.setYaw(50);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        view.setPressed(false);
+                        mDrone.setYaw(0);
+                        break;
+                }
+                return true;
+            }
+        });
+        // Pivoter sur la gauche
+        findViewById(R.id.btn_yaw_left).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        view.setPressed(true);
+                        mDrone.setYaw(-50);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        view.setPressed(false);
+                        mDrone.setYaw(0);
+                        break;
+                }
+                return true;
+            }
+        });
+        // Avancer
+        findViewById(R.id.btn_forward).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        view.setPressed(true);
+                        mDrone.setPitch(50);
+                        mDrone.setFlag(BebopDrone.FLAG_ENABLED);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        view.setPressed(false);
+                        mDrone.setPitch(0);
+                        mDrone.setFlag(BebopDrone.FLAG_DISABLED);
+                        break;
+                }
+                return true;
+            }
+        });
+        // Reculer
+        findViewById(R.id.btn_back).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        view.setPressed(true);
+                        mDrone.setPitch(-50);
+                        mDrone.setFlag(BebopDrone.FLAG_ENABLED);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        view.setPressed(false);
+                        mDrone.setPitch(0);
+                        mDrone.setFlag(BebopDrone.FLAG_DISABLED);
+                        break;
+                }
+                return true;
+            }
+        });
+        // Aller à droite
+        findViewById(R.id.btn_roll_right).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        view.setPressed(true);
+                        mDrone.setRoll(50);
+                        mDrone.setFlag(BebopDrone.FLAG_ENABLED);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        view.setPressed(false);
+                        mDrone.setRoll(0);
+                        mDrone.setFlag(BebopDrone.FLAG_DISABLED);
+                        break;
+                }
+                return true;
+            }
+        });
+        // Aller à gauche
+        findViewById(R.id.btn_roll_left).setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        view.setPressed(true);
+                        mDrone.setRoll(-50);
+                        mDrone.setFlag(BebopDrone.FLAG_ENABLED);
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        view.setPressed(false);
+                        mDrone.setRoll(0);
+                        mDrone.setFlag(BebopDrone.FLAG_DISABLED);
+                        break;
+                }
+                return true;
+            }
+        });
+
+        canvasView = (SurfaceView)findViewById(R.id.canvasView);
+        canvasView.setZOrderOnTop(true);
+        canvasView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+
+        mVideoView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                onCanvasViewClick(view,motionEvent);
+                return false;
             }
         });
     }
@@ -276,41 +453,84 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
     }
 
     public void onImageReceived(ARFrame frame) {
-        if (mIsEnabled) {
-            byte[] data = frame.getByteData();
-            Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
+
+    }
+
+    private void onBitmapReceived(Bitmap bmp){
+        if (true) {
             if (bmp == null) {
                 Log.v(TAG, "onImageReceived: cant decode.");
                 return;
             }
-            Mat image = new Mat();
-            Utils.bitmapToMat(bmp, image);
+            Log.i(TAG,"Bitmap size : " + Integer.toString(bmp.getRowBytes()));
+            Mat firstMat = new Mat();
+            Mat mat = new Mat();
+            firstMat.assignTo(mat);
 
-            MatOfRect faces = new MatOfRect();
-            mClassifier.detectMultiScale(image, faces);
+            //Imgproc.cvtColor(mat, mat, Imgproc.COLOR_RGBA2GRAY);
+
+            final int minRows = Math.round(mat.rows() * .12f);
+
+            final Size minSize = new Size(minRows, minRows);
+            final Size maxSize = new Size(0, 0);
+
+            final MatOfRect faces = new MatOfRect();
+
+            mClassifier.detectMultiScale(mat, faces);
 
             if (faces.size().width != 0 && faces.size().height != 0) {
-                Log.d(TAG, "onImageReceived: face recognized !");
-                Rect faceConsidered = faces.toArray()[0];
-                //Affichage du rectangle
-                //opencv_imgproc.rectangle(image, faceConsidered, new opencv_core.Scalar(0, 255, 0, 1));
-                int[] faceCenterCoordinates;
-                if (image.size().width != mVideoView.getWidth() || image.size().height != mVideoView.getHeight()) {
-                    faceCenterCoordinates = new int[]{faceConsidered.x + (faceConsidered.width / 2), faceConsidered.y + (faceConsidered.height/ 2)};
-                } else {
-                    faceCenterCoordinates = new int[]{((int) (faceConsidered.x * mVideoView.getWidth() / image.size().width)),
-                            ((int) (faceConsidered.y * mVideoView.getHeight() / image.size().height))};
-                }
-                //image.size().height();
-                mDrone.setFlag(BebopDrone.FLAG_ENABLED);
-                mDrone.setRoll(((10 * (faceCenterCoordinates[0] - mScreenWidth / 2) / Math.abs(faceCenterCoordinates[0] - mScreenWidth / 2))));
-                mDrone.setGaz(((10 * (mScreenHeight / 2 - faceCenterCoordinates[1]) / Math.abs(mScreenHeight / 2 - faceCenterCoordinates[1]))));
+                onFaceDetection(mat,faces);
+            }
+        }
+    }
 
-                if ((faceCenterCoordinates[0] < mScreenWidth / 2 + 10) && (faceCenterCoordinates[0] > mScreenWidth / 2 - 10)) {
-                    mDrone.setRoll(0);
-                }
-                if ((faceCenterCoordinates[1] < mScreenHeight / 2 + 10) && (faceCenterCoordinates[1] > mScreenHeight / 2 - 10)) {
-                    mDrone.setGaz(0);
+    private void onFaceDetection(Mat image, MatOfRect faces){
+
+        Log.d(TAG, "onImageReceived: face recognized !");
+        drawFacesOnSurface(faces.toArray());
+        Rect faceConsidered = faces.toArray()[0];
+        //Affichage du rectangle
+        //opencv_imgproc.rectangle(image, faceConsidered, new opencv_core.Scalar(0, 255, 0, 1));
+        int[] faceCenterCoordinates;
+        if (image.size().width != mVideoView.getWidth() || image.size().height != mVideoView.getHeight()) {
+            faceCenterCoordinates = new int[]{faceConsidered.x + (faceConsidered.width / 2), faceConsidered.y + (faceConsidered.height/ 2)};
+        } else {
+            faceCenterCoordinates = new int[]{((int) (faceConsidered.x * mVideoView.getWidth() / image.size().width)),
+                    ((int) (faceConsidered.y * mVideoView.getHeight() / image.size().height))};
+        }
+        //image.size().height();
+        mDrone.setFlag(BebopDrone.FLAG_ENABLED);
+        mDrone.setRoll(((10 * (faceCenterCoordinates[0] - mScreenWidth / 2) / Math.abs(faceCenterCoordinates[0] - mScreenWidth / 2))));
+        mDrone.setGaz(((10 * (mScreenHeight / 2 - faceCenterCoordinates[1]) / Math.abs(mScreenHeight / 2 - faceCenterCoordinates[1]))));
+
+        if ((faceCenterCoordinates[0] < mScreenWidth / 2 + 10) && (faceCenterCoordinates[0] > mScreenWidth / 2 - 10)) {
+            mDrone.setRoll(0);
+        }
+        if ((faceCenterCoordinates[1] < mScreenHeight / 2 + 10) && (faceCenterCoordinates[1] > mScreenHeight / 2 - 10)) {
+            mDrone.setGaz(0);
+        }
+    }
+
+    private void drawFacesOnSurface(Rect[] faces) {
+        Log.i(TAG,"Face(s) detected");
+        SurfaceHolder holder = canvasView.getHolder();
+        Canvas canvas = holder.lockCanvas();
+        Paint paint = new Paint();
+        paint.setColor(Color.GREEN);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(3);
+        for(Rect face : faces){
+            canvas.drawRect(face.x,face.y,face.x+face.width,face.y+face.height,paint);
+        }
+        holder.unlockCanvasAndPost(canvas);
+    }
+
+    private void onCanvasViewClick(View view, MotionEvent event) {
+        if (!(faces == null) && !faces.empty()) {
+            for (Rect face : faces.toArray()) {
+                if (event.getX() >= face.x && event.getX() <= (face.x + face.width) && event.getY() >= face.y && event.getY() <= (face.y + face.height)) {
+                    TextView followingStatus = (TextView) findViewById(R.id.txt_following_status);
+                    followingStatus.setText("Following target");
                 }
             }
         }

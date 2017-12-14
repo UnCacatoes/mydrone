@@ -1,12 +1,15 @@
 package fr.telecomlille.mydrone.view;
 
 import android.content.Context;
+import android.graphics.SurfaceTexture;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.TextureView;
 
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_STREAM_CODEC_TYPE_ENUM;
 import com.parrot.arsdk.arcontroller.ARControllerCodec;
@@ -21,7 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Un View capable de décoder les frame prises par la caméra du drone pour les afficher en
  * tant que flux vidéo continu.
  */
-public class BebopVideoView extends SurfaceView implements SurfaceHolder.Callback {
+public class BebopVideoView extends TextureView implements TextureView.SurfaceTextureListener {
 
     private static final String TAG = "BebopVideoView";
     private static final String VIDEO_MIME_TYPE = "video/avc";
@@ -39,25 +42,32 @@ public class BebopVideoView extends SurfaceView implements SurfaceHolder.Callbac
 
     private static final int VIDEO_WIDTH = 640;
     private static final int VIDEO_HEIGHT = 368;
+    private  Surface surface;
+    private boolean surfaceCreated = false;
 
     public BebopVideoView(Context context) {
         super(context);
+        setSurfaceTextureListener(this);
         customInit();
     }
 
     public BebopVideoView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setSurfaceTextureListener(this);
         customInit();
     }
 
     public BebopVideoView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        setSurfaceTextureListener(this);
         customInit();
     }
 
     private void customInit() {
         mReadyLock = new ReentrantLock();
-        getHolder().addCallback(this);
+        this.setSurfaceTextureListener(this);
+
+        //getHolder().addCallback(this);
     }
 
     public void displayFrame(ARFrame frame) {
@@ -131,13 +141,21 @@ public class BebopVideoView extends SurfaceView implements SurfaceHolder.Callbac
     }
 
     private void configureMediaCodec() {
-        mMediaCodec.stop();
-        MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, VIDEO_WIDTH, VIDEO_HEIGHT);
-        format.setByteBuffer("csd-0", mSpsBuffer);
-        format.setByteBuffer("csd-1", mPpsBuffer);
+        //mMediaCodec.stop();
 
-        mMediaCodec.configure(format, getHolder().getSurface(), null, 0);
-        mMediaCodec.start();
+        try {
+            final MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, VIDEO_WIDTH, VIDEO_HEIGHT);
+            format.setByteBuffer("csd-0", mSpsBuffer);
+            format.setByteBuffer("csd-1", mPpsBuffer);
+
+            mMediaCodec = MediaCodec.createDecoderByType(VIDEO_MIME_TYPE);
+            mMediaCodec.configure(format, surface, null, 0);
+            mMediaCodec.start();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
 
         if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.LOLLIPOP) {
             mBuffers = mMediaCodec.getInputBuffers();
@@ -169,22 +187,34 @@ public class BebopVideoView extends SurfaceView implements SurfaceHolder.Callbac
         }
     }
 
+
+
+
     @Override
-    public void surfaceCreated(SurfaceHolder holder) {
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int i, int i1) {
+        this.surface = new Surface(surface);
+        surfaceCreated = true;
         mReadyLock.lock();
         initMediaCodec(VIDEO_MIME_TYPE);
         mReadyLock.unlock();
     }
 
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int i, int i1) {
 
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surfaceTexture) {
         mReadyLock.lock();
         releaseMediaCodec();
         mReadyLock.unlock();
+        return false;
     }
+
+    @Override
+    public void onSurfaceTextureUpdated(SurfaceTexture surfaceTexture) {
+
+    }
+
 }
