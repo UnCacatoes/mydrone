@@ -42,7 +42,6 @@ public class CVClassifierView extends View {
         this(context, null);
     }
 
-
     public CVClassifierView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
