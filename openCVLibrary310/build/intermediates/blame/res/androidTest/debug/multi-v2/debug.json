@@ -1,6 +1,10 @@
 {
     "logs": [
         {
+            "outputFile": "D:\\Workspace\\mydrone\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values_values.arsc.flat",
+            "map": []
+        },
+        {
             "outputFile": "D:\\Workspace\\charles\\mydrone\\openCVLibrary310\\build\\intermediates\\res\\merged\\androidTest\\debug\\values_values.arsc.flat",
             "map": []
         }

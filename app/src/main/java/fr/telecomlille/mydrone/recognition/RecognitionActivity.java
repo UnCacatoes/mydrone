@@ -128,14 +128,6 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
 
         mVideoView.setSurfaceTextureListener(mVideoView);
 
-        ((ToggleButton) findViewById(R.id.btn_followme))
-                .setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                        enableFollowing(isChecked);
-                    }
-                });
-
         mTakeoffLandButton = (ImageButton) findViewById(R.id.btn_takeoff_land);
         mTakeoffLandButton.setOnClickListener(new View.OnClickListener() {
             @Override
