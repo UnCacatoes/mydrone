@@ -100,7 +100,7 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
      * @param id  Cascade à charger
      * @return
      */
-    private String cascadeFile(final int id) {
+    private void cascadeFile(final int id) {
         final InputStream is = getResources().openRawResource(id);
 
         final File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
@@ -121,7 +121,6 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
 
         } catch (Exception e) {
             Log.e(CLASS_NAME, "unable to open cascade file: " + cascadeFile.getName(), e);
-            return null;
         }
 
         mClassifier = new CascadeClassifier(cascadeFile.getAbsolutePath());
@@ -131,9 +130,7 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
         cvView.setClassifier(mClassifier);
         cvView.resume(mVideoView, null);
         Log.d(CLASS_NAME, "Classifier has been loaded !");
-        Log.d(CLASS_NAME, "Classifier has been loaded !");
 
-        return cascadeFile.getAbsolutePath();
     }
 
 
@@ -331,9 +328,6 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
         });
     }
 
-    private void openSettings(){
-        startActivity(new Intent(this,SettingsActivity.class));
-    }
     @Override
     protected void onStart() {
         super.onStart();
@@ -373,6 +367,7 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
     @Override
     protected void onDestroy() {
         mDrone.dispose();
+        cvView.pause();
         super.onDestroy();
     }
 
@@ -456,7 +451,5 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
             mDrone.setYaw(0);
         }
     }
-
-    //Todo: Ajouter contrôles de base (fleches) pour faciliter débug
 }
 
