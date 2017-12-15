@@ -281,7 +281,7 @@ public class AccelerometerActivity extends AppCompatActivity implements BebopDro
 
     @Override
     public void onFrameReceived(ARFrame frame) {
-        mVideoView.displayFrame(frame);
+        // mVideoView.displayFrame(frame);
     }
 
     @Override

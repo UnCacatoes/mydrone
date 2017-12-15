@@ -235,7 +235,7 @@ public class JoystickActivity extends AppCompatActivity implements BebopDrone.Li
 
     @Override
     public void onFrameReceived(ARFrame frame) {
-        mVideoView.displayFrame(frame);
+        // mVideoView.displayFrame(frame);
     }
 
     @Override

@@ -7,8 +7,6 @@ import android.media.MediaFormat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.TextureView;
 
 import com.parrot.arsdk.arcontroller.ARCONTROLLER_STREAM_CODEC_TYPE_ENUM;
@@ -29,20 +27,15 @@ public class BebopVideoView extends TextureView implements TextureView.SurfaceTe
     private static final String TAG = "BebopVideoView";
     private static final String VIDEO_MIME_TYPE = "video/avc";
     private static final int VIDEO_DEQUEUE_TIMEOUT = 33000;
-
-    private MediaCodec mMediaCodec;
-    private Lock mReadyLock;
-
-    private boolean mIsCodecConfigured = false;
-
-    private ByteBuffer mSpsBuffer;
-    private ByteBuffer mPpsBuffer;
-
-    private ByteBuffer[] mBuffers;
-
     private static final int VIDEO_WIDTH = 640;
     private static final int VIDEO_HEIGHT = 368;
-    private  Surface surface;
+    private MediaCodec mMediaCodec;
+    private Lock mReadyLock;
+    private boolean mIsCodecConfigured = false;
+    private ByteBuffer mSpsBuffer;
+    private ByteBuffer mPpsBuffer;
+    private ByteBuffer[] mBuffers;
+    private Surface surface;
     private boolean surfaceCreated = false;
 
     public BebopVideoView(Context context) {
@@ -69,6 +62,7 @@ public class BebopVideoView extends TextureView implements TextureView.SurfaceTe
 
         //getHolder().addCallback(this);
     }
+
 
     public void displayFrame(ARFrame frame) {
         mReadyLock.lock();
@@ -122,6 +116,7 @@ public class BebopVideoView extends TextureView implements TextureView.SurfaceTe
 
         mReadyLock.unlock();
     }
+
 
     public void configureDecoder(ARControllerCodec codec) {
         mReadyLock.lock();
@@ -186,8 +181,6 @@ public class BebopVideoView extends TextureView implements TextureView.SurfaceTe
             mMediaCodec = null;
         }
     }
-
-
 
 
     @Override

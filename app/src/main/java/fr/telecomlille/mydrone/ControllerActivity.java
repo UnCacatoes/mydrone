@@ -338,7 +338,7 @@ public class ControllerActivity extends AppCompatActivity implements BebopDrone.
 
     @Override
     public void onFrameReceived(ARFrame frame) {
-        mVideoView.displayFrame(frame);
+        //mVideoView.displayFrame(frame);
     }
 
     @Override
