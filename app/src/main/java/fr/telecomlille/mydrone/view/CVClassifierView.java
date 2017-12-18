@@ -31,7 +31,6 @@ public class CVClassifierView extends View {
     private final Context ctx;
     private final Object lock = new Object();
     private CascadeClassifier faceClassifier;
-    private Handler openCVHandler = new Handler();
     private Thread openCVThread = null;
     private BebopVideoView bebopVideoView = null;
     private ImageView cvPreviewView = null;
