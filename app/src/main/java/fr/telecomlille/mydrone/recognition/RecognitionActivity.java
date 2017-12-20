@@ -162,7 +162,6 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
                 mDrone.emergency();
             }
         });
-        Toast.makeText(this, "C'EST LOAD !", Toast.LENGTH_LONG).show();
     }
 
     @Override
