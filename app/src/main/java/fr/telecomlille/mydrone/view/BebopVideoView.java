@@ -29,6 +29,7 @@ public class BebopVideoView extends TextureView implements TextureView.SurfaceTe
     private static final int VIDEO_DEQUEUE_TIMEOUT = 33000;
     private static final int VIDEO_WIDTH = 640;
     private static final int VIDEO_HEIGHT = 368;
+
     private MediaCodec mMediaCodec;
     private Lock mReadyLock;
     private boolean mIsCodecConfigured = false;
@@ -36,7 +37,6 @@ public class BebopVideoView extends TextureView implements TextureView.SurfaceTe
     private ByteBuffer mPpsBuffer;
     private ByteBuffer[] mBuffers;
     private Surface surface;
-    private boolean surfaceCreated = false;
 
     public BebopVideoView(Context context) {
         super(context);
@@ -59,8 +59,6 @@ public class BebopVideoView extends TextureView implements TextureView.SurfaceTe
     private void customInit() {
         mReadyLock = new ReentrantLock();
         this.setSurfaceTextureListener(this);
-
-        //getHolder().addCallback(this);
     }
 
 
@@ -136,7 +134,6 @@ public class BebopVideoView extends TextureView implements TextureView.SurfaceTe
     }
 
     private void configureMediaCodec() {
-        //mMediaCodec.stop();
 
         try {
             final MediaFormat format = MediaFormat.createVideoFormat(VIDEO_MIME_TYPE, VIDEO_WIDTH, VIDEO_HEIGHT);
@@ -186,7 +183,6 @@ public class BebopVideoView extends TextureView implements TextureView.SurfaceTe
     @Override
     public void onSurfaceTextureAvailable(SurfaceTexture surface, int i, int i1) {
         this.surface = new Surface(surface);
-        surfaceCreated = true;
         mReadyLock.lock();
         initMediaCodec(VIDEO_MIME_TYPE);
         mReadyLock.unlock();
