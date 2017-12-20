@@ -53,6 +53,8 @@
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.NoActionBar.Fullscreen"/>
 
+        <activity android:name=".recognition.SettingsActivity"/>
+
     </application>
 
 </manifest>

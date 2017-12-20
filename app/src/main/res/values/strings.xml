@@ -35,4 +35,7 @@
     <string name="unfollow">Unfollow</string>
     <string name="follow_me">Follow me</string>
     <string name="follow_status_waiting">Waiting for a target ...</string>
+    <string name="title_detection_type">Select a detection type</string>
+    <string name="radio_face">Face detection</string>
+    <string name="radio_body">Body detection</string>
 </resources>
