@@ -31,6 +31,30 @@
         android:textSize="20sp"
         tools:ignore="RelativeOverlap" />
 
+    <ImageButton
+        android:id="@+id/faceDetection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="55dp"
+        android:layout_toEndOf="@+id/txt_following_status"
+        android:background="@android:color/transparent"
+        android:tint="@android:color/white"
+        android:paddingTop="20dp"
+        app:srcCompat="@drawable/ic_control_face_24dp" />
+
+    <ImageButton
+        android:id="@+id/bodyDetection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/faceDetection"
+        android:background="@android:color/transparent"
+        android:tint="@android:color/white"
+        android:paddingTop="20dp"
+        android:paddingLeft="5dp"
+        app:srcCompat="?android:attr/actionModeSelectAllDrawable" />
+
     <!--
     <Button
         android:id="@+id/button"

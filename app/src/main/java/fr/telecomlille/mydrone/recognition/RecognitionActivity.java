@@ -2,6 +2,9 @@ package fr.telecomlille.mydrone.recognition;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -308,8 +311,29 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
                 return true;
             }
         });
+
+        findViewById(R.id.faceDetection).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cascadeFile(R.raw.haarcascade_frontalface_default);
+                findViewById(R.id.faceDetection).setBackgroundColor(Color.GREEN);
+                findViewById(R.id.bodyDetection).setBackgroundColor(Color.WHITE);
+            }
+        });
+
+        findViewById(R.id.bodyDetection).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                cascadeFile(R.raw.haarcascade_fullbody);
+                findViewById(R.id.bodyDetection).setBackgroundColor(Color.GREEN);
+                findViewById(R.id.faceDetection).setBackgroundColor(Color.WHITE);
+            }
+        });
     }
 
+    private void openSettings(){
+        startActivity(new Intent(this,SettingsActivity.class));
+    }
     @Override
     protected void onStart() {
         super.onStart();

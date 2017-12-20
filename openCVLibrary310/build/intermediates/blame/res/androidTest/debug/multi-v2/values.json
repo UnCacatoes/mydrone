@@ -1,11 +1,15 @@
 {
     "logs": [
         {
-            "outputFile": "/home/cfrey/mydrone/D:\\Workspace\\mydrone\\openCVLibrary310\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
+            "outputFile": "/home/guillaume/Workspace/mydrone/openCVLibrary310/build/intermediates/incremental/mergeDebugAndroidTestResources/merged.dir/values/values.xml",
             "map": []
         },
         {
             "outputFile": "/home/cfrey/mydrone/D:\\Workspace\\charles\\mydrone\\openCVLibrary310\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
+            "map": []
+        },
+        {
+            "outputFile": "/home/cfrey/mydrone/D:\\Workspace\\mydrone\\openCVLibrary310\\build\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values\\values.xml",
             "map": []
         },
         {

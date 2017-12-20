@@ -98,6 +98,7 @@ public class CVClassifierView extends View {
                     Log.i(CLASS_NAME, "found face size=" + target.area());
                     paint.setColor(Color.GREEN);
                     canvas.drawRect((float) target.tl().x * mX, (float) target.tl().y * mY, (float) target.br().x * mX, (float) target.br().y * mY, paint);
+                    facesArray = null;
                 }
             }
         }
