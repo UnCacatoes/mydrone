@@ -19,10 +19,9 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
 
-/**
- * Shell M. Shrader - 12/1/16
- * <p>
- * All Rights Reserved
+/** View permettant le traitement de la mat récupérée depuis la BebopVideoView
+ * par openCV. Reconnaissance à l'aide de classifiers haar cascade. Cette vue n'affiche
+ * qu'un rectangle par dessus les formes reconnues.
  */
 
 public class CVClassifierView extends View {
@@ -30,7 +29,7 @@ public class CVClassifierView extends View {
     private final static String CLASS_NAME = CVClassifierView.class.getSimpleName();
     private final Context ctx;
     private final Object lock = new Object();
-    private CascadeClassifier faceClassifier;
+    private CascadeClassifier mClassifier;
     private Thread openCVThread = null;
     private BebopVideoView bebopVideoView = null;
     private ImageView cvPreviewView = null;
@@ -52,11 +51,9 @@ public class CVClassifierView extends View {
         super(context, attrs, defStyleAttr);
 
         ctx = context;
+        mClassifier = null;
 
-        // initialize our opencv cascade classifiers
-        faceClassifier = null;
-
-        // initialize our canvas paint object
+        // objet canvas utilisé pour les rectangles
         paint = new Paint();
         paint.setAntiAlias(true);
         paint.setColor(Color.GREEN);
@@ -87,19 +84,19 @@ public class CVClassifierView extends View {
     }
 
     public void setClassifier(CascadeClassifier cascade) {
-        this.faceClassifier = cascade;
+        this.mClassifier = cascade;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-//        Log.d(CLASS_NAME, "onDraw");
+        Log.d(CLASS_NAME, "onDraw");
 
         synchronized (lock) {
             if (facesArray != null && facesArray.length > 0) {
                 for (Rect target : facesArray) {
                     //Todo: Récupérer les coordonnées et faire le traitement
                     Log.i(CLASS_NAME, "found face size=" + target.area());
-                    paint.setColor(Color.RED);
+                    paint.setColor(Color.GREEN);
                     canvas.drawRect((float) target.tl().x * mX, (float) target.tl().y * mY, (float) target.br().x * mX, (float) target.br().y * mY, paint);
                 }
             }
@@ -143,7 +140,7 @@ public class CVClassifierView extends View {
 
                     final MatOfRect faces = new MatOfRect();
 
-                    faceClassifier.detectMultiScale(mat, faces);
+                    mClassifier.detectMultiScale(mat, faces);
 
                     synchronized (lock) {
                         facesArray = faces.toArray();
