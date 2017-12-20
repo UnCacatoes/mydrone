@@ -32,6 +32,8 @@ dependencies {
     compile 'com.parrot:arsdk:3.11.0'
     compile 'com.android.support:percent:25.3.1'
     testCompile 'junit:junit:4.12'
+    androidTestCompile 'org.mockito:mockito-core:2.+'
+    androidTestCompile 'org.mockito:mockito-android:2.+'
     compile project(path: ':openCVLibrary310')
     compile 'com.parrot:arsdk:3.12.6'
 }
