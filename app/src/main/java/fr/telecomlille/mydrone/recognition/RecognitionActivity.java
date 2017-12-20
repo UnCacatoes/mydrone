@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Locale;
 
 import fr.telecomlille.mydrone.MainActivity;
 import fr.telecomlille.mydrone.R;
@@ -37,19 +38,21 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
 
     private final static String CLASS_NAME = RecognitionActivity.class.getSimpleName();
 
+    private BebopDrone mDrone;
     private BebopVideoView mVideoView;
     private CVClassifierView cvView;
+
     private int mScreenWidth, mScreenHeight;
-    private BebopDrone mDrone;
     private ProgressDialog mConnectionDialog;
     private ImageButton mTakeoffLandButton;
     private CascadeClassifier mClassifier;
+
     private final BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
             switch (status) {
                 case BaseLoaderCallback.SUCCESS:
-                    loadCascade();
+                    cascadeFile(R.raw.haarcascade_frontalface_default);
                     break;
                 default:
                     super.onManagerConnected(status);
@@ -85,42 +88,50 @@ public class RecognitionActivity extends AppCompatActivity implements BebopDrone
         }
     }
 
+
     /**
      * Copie le fichiers XML contenant les instructions de reconnaissance de visage
      * dans les fichiers temporaires, puis le charge avec le CascadeClassifier.
-     */
-    //Todo: Refactoriser dans CVClassifierView
-    private void loadCascade() {
-        try {
-            InputStream is = getResources().openRawResource(R.raw.haarcascade_frontalface_default);
-            File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
-            File mCascadeFile = new File(cascadeDir, "haarcascade_frontalface_default.xml");
-            FileOutputStream os = new FileOutputStream(mCascadeFile);
 
-            byte[] buffer = new byte[4096];
+     * @param id  Cascade à charger
+     * @return
+     */
+    private String cascadeFile(final int id) {
+        final InputStream is = getResources().openRawResource(id);
+
+        final File cascadeDir = getDir("cascade", Context.MODE_PRIVATE);
+        final File cascadeFile = new File(cascadeDir, String.format(Locale.US, "%d.xml", id));
+
+        try {
+            final FileOutputStream os = new FileOutputStream(cascadeFile);
+            final byte[] buffer = new byte[4096];
+
             int bytesRead;
+
             while ((bytesRead = is.read(buffer)) != -1) {
                 os.write(buffer, 0, bytesRead);
             }
+
             is.close();
             os.close();
 
-            mClassifier = new CascadeClassifier(mCascadeFile.getAbsolutePath());
-            // L'appel load est nécessaire à cause d'un bug d'OpenCV dans cette version
-            mClassifier.load(mCascadeFile.getAbsolutePath());
-
-            cvView.setClassifier(mClassifier);
-            cvView.resume(mVideoView, null);
-            Log.d(CLASS_NAME, "Classifier has been loaded !");
-            if (mClassifier.empty()) {
-                Log.e(CLASS_NAME, "Error while loading classifier file.");
-            } else {
-                Log.d(CLASS_NAME, "Loaded cascade classifier from " + mCascadeFile.getAbsolutePath());
-            }
-        } catch (IOException e) {
-            Log.e("MyActivity", "Failed to load cascade.", e);
+        } catch (Exception e) {
+            Log.e(CLASS_NAME, "unable to open cascade file: " + cascadeFile.getName(), e);
+            return null;
         }
+
+        mClassifier = new CascadeClassifier(cascadeFile.getAbsolutePath());
+        // L'appel load est nécessaire à cause d'un bug d'OpenCV dans cette version
+        mClassifier.load(cascadeFile.getAbsolutePath());
+
+        cvView.setClassifier(mClassifier);
+        cvView.resume(mVideoView, null);
+        Log.d(CLASS_NAME, "Classifier has been loaded !");
+        Log.d(CLASS_NAME, "Classifier has been loaded !");
+
+        return cascadeFile.getAbsolutePath();
     }
+
 
     private void initIHM() {
         mVideoView = (BebopVideoView) findViewById(R.id.videoView);
